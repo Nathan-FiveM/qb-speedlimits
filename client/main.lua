@@ -1,42 +1,31 @@
 local SpeedLimitEnabled = false
-local UIOpen = false
 
--- TEST COMMAND
---[[
-RegisterCommand('speedlimit', function(source, args)
-    SpeedLimitEnabled = not SpeedLimitEnabled
-end)
-]]
-
-RegisterNetEvent("919-speedlimit:client:ToggleSpeedLimit", function(toggle)
-    if toggle then
-        SendNUIMessage({action = "show"})
-        UIOpen = true
-        SpeedLimitEnabled = true
-    else
-        SendNUIMessage({action = "hide"})
-        UIOpen = false
-        SpeedLimitEnabled = false
-    end
+RegisterNetEvent("speedlimit:client:ToggleSpeedLimit", function(bool)
+    print(bool)
+    SpeedLimitEnabled = bool
 end)
 
-Citizen.CreateThread(function()
+CreateThread(function()
     while true do
         Wait(1000)
-        if IsPedInAnyVehicle(PlayerPedId()) then
-            if SpeedLimitEnabled and not UIOpen then
-                SendNUIMessage({action = "show"})
-                UIOpen = true
-            elseif SpeedLimitEnabled and UIOpen then
+        if IsPauseMenuActive() then
+            pauseMenu = true
+        elseif not IsPauseMenuActive() then
+            pauseMenu =  false
+        end
+        if IsPedInAnyVehicle(PlayerPedId()) and not pauseMenu then
+            if SpeedLimitEnabled then
                 local speed = GetSpeedLimit()
+                SendNUIMessage({action = "show"})
                 if speed then
                     SendNUIMessage({action = "setlimit", speed = speed})
                 end
+            elseif not SpeedLimitEnabled then
+                SendNUIMessage({action = "hide"})
             end
         else
-            if SpeedLimitEnabled and UIOpen then
+            if SpeedLimitEnabled then
                 SendNUIMessage({action = "hide"})
-                UIOpen = false
             end
         end
     end
